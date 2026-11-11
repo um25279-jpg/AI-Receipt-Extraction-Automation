@@ -1,0 +1,223 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Upload your receipt",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "data",
+              "fieldType": "file"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3786f31a-c326-4e74-ba26-8abb494368ee",
+      "name": "On form submission",
+      "webhookId": "7d0b9cfe-2706-4166-bfbf-89b2c0794ffd"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.5-flash",
+          "mode": "list",
+          "cachedResultName": "Gemini 3.5 Flash"
+        },
+        "text": "Read the uploaded receipt and extract these six fields:\n\n- merchant\n- date\n- receipt_number\n- total_amount\n- tax_amount\n- payment_method\n\nReturn ONLY valid JSON in this exact format:\n\n{\n  \"merchant\": \"ABC Store\",\n  \"date\": \"2026-11-11\",\n  \"receipt_number\": \"R1024\",\n  \"total_amount\": 1180,\n  \"tax_amount\": 180,\n  \"payment_method\": \"Card\"\n}\n\nDo not include Markdown, explanations, tables or additional text.\n\nIf a field is unavailable, return null.",
+        "inputType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "446c574f-d7c8-4943-ba9f-30118714c9e6",
+      "name": "Analyze an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "GexPkg3haaHrSPs0",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1hetAjWDz9qyTj78soy41ojRRPmB9PXzJNAs6g_lsm40",
+          "mode": "list",
+          "cachedResultName": "Receipt Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1hetAjWDz9qyTj78soy41ojRRPmB9PXzJNAs6g_lsm40/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1hetAjWDz9qyTj78soy41ojRRPmB9PXzJNAs6g_lsm40/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Merchant": "={{ $json.merchant }}",
+            "Date": "={{ $json.date }}",
+            "Receipt No.": "={{ $json.receipt_number }}",
+            "Total": "={{ $json.total_amount }}",
+            "Tax": "={{ $json.tax_amount }}",
+            "Payment Method": "={{ $json.payment_method }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Merchant",
+              "displayName": "Merchant",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Receipt No.",
+              "displayName": "Receipt No.",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total",
+              "displayName": "Total",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tax",
+              "displayName": "Tax",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Payment Method",
+              "displayName": "Payment Method",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        0
+      ],
+      "id": "e677873e-8a9b-4608-a37e-51a0776d8126",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "oJELICPuSN2sErde",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst response = $input.first().json;\n\nconst text =\n  response.candidates?.[0]?.content?.parts?.[0]?.text ??\n  response.content?.parts?.[0]?.text;\n\nconst data = JSON.parse(text);\n\nreturn [{ json: data }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "875b673f-2f06-40dc-8d5a-548d3c2c7e2c",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Analyze an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze an image": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c9a18689-7779-4be9-abd4-9a7048cabcfe",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9a39b4520da0eb20e84238b12399b730c6fe7e7c6045b2c58785c2267fbcf4d6"
+  },
+  "nodeGroups": [],
+  "id": "4WOCUFgp8pWlMBx0",
+  "tags": []
+}
