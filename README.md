@@ -53,5 +53,20 @@ Both receipts were successfully processed and their information was automaticall
 4. Select your destination spreadsheet.
 5. Upload a receipt through the form.
 
-## Author
-Nufaiz Moideen
+## Test Results
+
+The workflow was tested using multiple receipt images to verify extraction accuracy and automated data storage.
+
+| Test Case | Merchant | Receipt Number | Total Amount | Tax | Payment Method | Status |
+|---|---|---|---:|---:|---|---|
+| TC01 | THE GOURMET CORNER | 4519 | 111.02 | 7.52 | VISA | Passed |
+| TC02 | THE HUNGRY SPOON | 5098 | 226.94 | 15.44 | AMEX | Passed |
+
+### Test Observations
+- Gemini successfully extracted the required receipt information.
+- Extracted information was converted into structured JSON.
+- Google Sheets successfully stored the extracted information.
+- Multiple receipts were added as separate rows.
+
+### Overall Result
+2 out of 2 tested receipts were successfully processed and stored in Google Sheets.
